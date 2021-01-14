@@ -1,0 +1,39 @@
+name: 'run BiliExp'
+
+on:
+  schedule:
+    - cron: '0 4 * * *' #中午12:00执行，时间与其他脚本有依赖关系如无必要请勿修改
+  watch:
+    types: started
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    if: github.event.repository.owner.id == github.event.sender.id
+    steps:
+    - uses: actions/checkout@v2
+      with: 
+        ref: main
+
+#    - uses: actions/cache@v2
+#      with:
+#        path: ~/.cache/pip
+#        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+#        restore-keys: |
+#          ${{ runner.os }}-pip-
+
+    - name: 登录......
+      run: python3 secrets2config.py
+      env:
+          ADVCONFIG: ${{ secrets.ADVCONFIG }}
+          BILICONFIG: ${{ secrets.BILICONFIG }}
+          PUSH_MESSAGE: ${{ secrets.PUSH_MESSAGE }}
+
+    - name: 安装依赖......好耶！
+      run: |
+          sudo -H pip3 install --upgrade setuptools
+          sudo -H pip3 install -r requirements.txt
+
+    - name: 开始签到啦！
+      run: python3 BiliExp.py
